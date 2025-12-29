@@ -8,35 +8,53 @@ import Url from "./models/Url.js";
 dotenv.config();
 
 const app = express();
+
+/* ---------- MIDDLEWARE ---------- */
 app.use(
   cors({
-    origin: true,        // allow any origin
+    origin: "*",
     methods: ["GET", "POST"],
   })
 );
 
 app.use(express.json());
 
-app.use(express.json());
-
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI)
+/* ---------- DATABASE ---------- */
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error(err));
+  .catch((err) => {
+    console.error("MongoDB error:", err);
+    process.exit(1);
+  });
 
-// Routes
+/* ---------- API ROUTES ---------- */
 app.use("/api", urlRoutes);
 
-// Redirect handler
+/* ---------- REDIRECT ROUTE (VERY IMPORTANT: LAST ROUTE) ---------- */
 app.get("/:code", async (req, res) => {
-  const url = await Url.findOne({ shortCode: req.params.code });
+  try {
+    const { code } = req.params;
 
-  if (!url) return res.status(404).send("Link not found");
-  if (url.expiresAt < new Date())
-    return res.status(410).send("Link expired");
+    const url = await Url.findOne({ shortCode: code });
 
-  res.redirect(url.originalUrl);
+    if (!url) {
+      return res.status(404).send("Link not found");
+    }
+
+    if (url.expiresAt < new Date()) {
+      return res.status(410).send("Link expired");
+    }
+
+    return res.redirect(url.originalUrl);
+  } catch (err) {
+    console.error("Redirect error:", err);
+    return res.status(500).send("Server error");
+  }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+/* ---------- SERVER ---------- */
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
