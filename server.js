@@ -8,8 +8,15 @@ import Url from "./models/Url.js";
 dotenv.config();
 
 const app = express();
-app.use(cors());
-app.options("*", cors());
+app.use(
+  cors({
+    origin: true,        // allow any origin
+    methods: ["GET", "POST"],
+  })
+);
+
+app.use(express.json());
+
 app.use(express.json());
 
 // MongoDB connection
