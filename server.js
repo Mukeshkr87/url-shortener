@@ -9,24 +9,34 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({ origin: true }));
+/* ✅ CORS – FIXED FOR VERCEL */
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://url-shortener-frontend-802y5noq0-mukesh87s-projects.vercel.app",
+    ],
+    methods: ["GET", "POST"],
+  })
+);
+
 app.use(express.json());
 
-// Health check
+/* Health check */
 app.get("/", (req, res) => {
   res.send("URL Shortener API is running");
 });
 
-// MongoDB
+/* MongoDB */
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(console.error);
 
-// API routes
+/* API */
 app.use("/api", urlRoutes);
 
-// ✅ REDIRECT ROUTE (FIXED)
+/* ✅ REDIRECT ROUTE */
 app.get("/r/:code", async (req, res) => {
   const url = await Url.findOne({ shortCode: req.params.code });
 
@@ -38,4 +48,6 @@ app.get("/r/:code", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
+);
