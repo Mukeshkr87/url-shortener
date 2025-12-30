@@ -9,16 +9,12 @@ dotenv.config();
 
 const app = express();
 
-/* ✅ CORS – FIXED FOR VERCEL */
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://url-shortener-frontend-802y5noq0-mukesh87s-projects.vercel.app",
-    ],
-    methods: ["GET", "POST"],
-  })
-);
+/* ✅ SAFE CORS — NO WILDCARDS */
+app.use(cors({
+  origin: true,
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"]
+}));
 
 app.use(express.json());
 
@@ -36,7 +32,7 @@ mongoose
 /* API */
 app.use("/api", urlRoutes);
 
-/* ✅ REDIRECT ROUTE */
+/* Redirect */
 app.get("/r/:code", async (req, res) => {
   const url = await Url.findOne({ shortCode: req.params.code });
 
@@ -48,6 +44,4 @@ app.get("/r/:code", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () =>
-  console.log(`Server running on port ${PORT}`)
-);
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
